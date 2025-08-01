@@ -1,9 +1,8 @@
 "use client";
 import { getProviders, signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { LoadingSpinner } from "../LoadingSpinner";
 
-export const SignInPage = () => {
+export const SignInScreen = () => {
   const [providers, setProviders] = useState<any>(null);
 
   useEffect(() => {

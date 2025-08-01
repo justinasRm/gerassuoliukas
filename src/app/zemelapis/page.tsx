@@ -1,7 +1,5 @@
+import { ZemelapisScreen } from "../components/pages/ZemelapisScreen";
+
 export default function Zemelapis() {
-  return (
-    <div>
-      <h1>Zemelapis</h1>
-    </div>
-  );
+  return <ZemelapisScreen />;
 }

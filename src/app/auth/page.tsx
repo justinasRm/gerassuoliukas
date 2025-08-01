@@ -1,6 +1,6 @@
 import { auth } from "~/server/auth";
-import { SignInPage } from "../components/pages/SignInPage";
 import { redirect } from "next/navigation";
+import { SignInScreen } from "../components/pages/SignInScreen";
 
 export default async function SignIn() {
   const session = await auth();
@@ -9,5 +9,5 @@ export default async function SignIn() {
     redirect("/zemelapis");
   }
 
-  return <SignInPage />;
+  return <SignInScreen />;
 }
