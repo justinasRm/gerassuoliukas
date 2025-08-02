@@ -1,5 +1,10 @@
-export const LoadingSpinner = () => (
-  <div className="flex min-h-screen items-center justify-center bg-[hsl(125,100%,5%)] text-white">
+interface Props {
+  fullScreen?: boolean;
+}
+export const LoadingSpinner = ({ fullScreen }: Props) => (
+  <div
+    className={`flex ${fullScreen ? "min-h-screen" : "h-32"} items-center justify-center bg-[hsl(125,100%,5%)] text-white`}
+  >
     <div className="relative flex h-32 flex-col items-center justify-center">
       <div className="animate-bench-move relative">
         <div className="relative h-3 w-20 animate-pulse rounded-sm bg-green-700 shadow-lg" />

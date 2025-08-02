@@ -1,3 +1,20 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import { LoadingSpinner } from "../LoadingSpinner";
+
+const LeafletMap = dynamic(
+  () => import("../LeafletMap").then((mod) => ({ default: mod.LeafletMap })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[500px] w-full items-center justify-center">
+        <LoadingSpinner fullScreen={false} />
+      </div>
+    ),
+  },
+);
+
 export const ZemelapisScreen = () => {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-[hsl(125,100%,5%)] text-white">
@@ -10,6 +27,7 @@ export const ZemelapisScreen = () => {
             Raskite geriausius suoliukus jūsų mieste
           </p>
         </div>
+        <LeafletMap />
 
         <div className="flex flex-col items-center justify-center gap-8">
           <div className="grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
