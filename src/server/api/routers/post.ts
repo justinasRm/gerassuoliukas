@@ -1,33 +1,34 @@
 import { z } from "zod";
 
-import {
-  createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
-} from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+
+const createPostSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  photoUrl: z.string(),
+});
+
+// Export the inferred type for frontend use
+export type CreatePostInput = z.infer<typeof createPostSchema>;
 
 export const postRouter = createTRPCRouter({
-  create: protectedProcedure
-    .input(z.object({ name: z.string().min(1) }))
+  createPost: protectedProcedure
+    .input(createPostSchema)
     .mutation(async ({ ctx, input }) => {
       return ctx.db.post.create({
         data: {
-          name: input.name,
+          title: input.title,
+          description: input.description,
+          photoUrl: input.photoUrl || "",
           createdBy: { connect: { id: ctx.session.user.id } },
         },
       });
     }),
 
-  getLatest: protectedProcedure.query(async ({ ctx }) => {
-    const post = await ctx.db.post.findFirst({
+  getMyPosts: protectedProcedure.query(({ ctx }) => {
+    return ctx.db.post.findMany({
+      where: { createdById: ctx.session.user.id },
       orderBy: { createdAt: "desc" },
-      where: { createdBy: { id: ctx.session.user.id } },
     });
-
-    return post ?? null;
-  }),
-
-  getSecretMessage: protectedProcedure.query((x) => {
-    return "you can now see this secret message!";
   }),
 });
