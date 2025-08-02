@@ -1,5 +1,5 @@
 "use client";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { api } from "~/trpc/react";
@@ -8,6 +8,9 @@ import { LoadingSpinner } from "../LoadingSpinner";
 import dynamic from "next/dynamic";
 import { UploadDropzone } from "~/utils/uploadthing";
 import { LeafletMap } from "../LeafletMap";
+import { Button } from "../ui/Button";
+import { UploadThingDrop } from "../UploadThingDrop";
+import Image from "next/image";
 
 // const LeafletMap = dynamic(
 //   () => import("../LeafletMap").then((mod) => ({ default: mod.LeafletMap })),
@@ -42,20 +45,13 @@ const createPostSchema = z.object({
     .url("Kažkas negerai su url..."),
 });
 
-type CreatePostFormData = z.infer<typeof createPostSchema>;
+export type CreatePostFormData = z.infer<typeof createPostSchema>;
 
 interface Props {
   session: Session;
 }
 export const ZemelapisScreen = (props: Props) => {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<CreatePostFormData>({
+  const methods = useForm<CreatePostFormData>({
     resolver: zodResolver(createPostSchema),
     defaultValues: {
       title: "",
@@ -63,6 +59,15 @@ export const ZemelapisScreen = (props: Props) => {
       photoUrl: "",
     },
   });
+
+  const photoUrl = methods.watch("photoUrl");
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = methods;
 
   const utils = api.useUtils();
 
@@ -96,148 +101,95 @@ export const ZemelapisScreen = (props: Props) => {
           <h2 className="mb-8 text-xl font-semibold text-[hsl(118,100%,70%)]">
             Sukurti naują įrašą
           </h2>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label className="mb-4 block text-sm font-medium">
-                Pavadinimas*
-              </label>
-              <input
-                type="text"
-                {...register("title")}
-                className={`mt-1 block w-full rounded-md border bg-white/10 px-3 py-2 text-white placeholder-white/50 focus:ring-1 focus:outline-none ${
-                  errors.title
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                    : "border-white/20 focus:border-[hsl(118,100%,70%)] focus:ring-[hsl(118,100%,70%)]"
-                }`}
-                placeholder="Įveskite pavadinimą..."
-              />
-              {errors.title && (
-                <p className="mt-1 text-sm text-red-400">
-                  {errors.title.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="mb-4 block text-sm font-medium">
-                Aprašymas*
-              </label>
-              <textarea
-                {...register("description")}
-                // className="mt-1 block w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-white/50 focus:border-[hsl(118,100%,70%)] focus:ring-1 focus:ring-[hsl(118,100%,70%)] focus:outline-none"
-                className={`mt-1 block w-full rounded-md border bg-white/10 px-3 py-2 text-white placeholder-white/50 focus:ring-1 focus:outline-none ${
-                  errors.description
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                    : "border-white/20 focus:border-[hsl(118,100%,70%)] focus:ring-[hsl(118,100%,70%)]"
-                }`}
-                placeholder="Aprašykite savo įrašą..."
-                rows={3}
-              />
-              {errors.description && (
-                <p className="mt-1 text-sm text-red-400">
-                  {errors.description.message}
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="mb-4 block text-sm font-medium">
-                Nuotrauka/os*
-              </label>
-              <div
-                className={`mt-1 block w-full rounded-md border bg-white/10 px-3 py-2 text-white placeholder-white/50 focus:ring-1 focus:outline-none ${
-                  errors.photoUrl
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                    : "border-white/20 focus:border-[hsl(118,100%,70%)] focus:ring-[hsl(118,100%,70%)]"
-                }`}
-              >
-                <UploadDropzone
-                  endpoint="imageUploader"
-                  onClientUploadComplete={(res) => {
-                    console.log("Dropzone upload complete:", res);
-                    if (res && res[0]) {
-                      setValue("photoUrl", res[0].ufsUrl);
-                    }
-                  }}
-                  onUploadError={(error: Error) => {
-                    console.log("Upload error:", error);
-                    // FileSizeMismatch - if the file size exceeds the limit
-                    // FileCountMismatch - if the number of files exceeds the limit
-                    if (error.message.includes("FileSizeMismatch")) {
-                      setError("photoUrl", {
-                        type: "manual",
-                        message:
-                          "Seni, persistengei, failas per didelis.\nDaugiausiai 8MB.",
-                      });
-                    } else if (error.message.includes("FileCountMismatch")) {
-                      setError("photoUrl", {
-                        type: "manual",
-                        message:
-                          "Gerai, tu ne Alesius, tiek daug nuotraukų nereikia.\nDaugiausiai 3 nuotraukos.",
-                      });
-                    } else {
-                      setError("photoUrl", {
-                        type: "manual",
-                        message:
-                          "Kažkas nepavyko. elektra nepraėjo, rezisteris užstrigo, ar dar kas nors, nežinau.\nPerkrauk ir bandyk iš naujo.",
-                      });
-                    }
-                  }}
-                  appearance={{
-                    button: {
-                      backgroundColor: "#6bff66",
-                      color: "#000",
-                      border: "none",
-                      borderRadius: "0.375rem",
-                      padding: "0.5rem 1rem",
-                      fontWeight: "600",
-                    },
-                    label: {
-                      color: "#fff",
-                      fontSize: "0.875rem",
-                      marginBottom: "0.5rem",
-                    },
-                    allowedContent: {
-                      color: "#fff",
-                      fontSize: "0.75rem",
-                      marginTop: "0.25rem",
-                    },
-                    uploadIcon: {
-                      color: "#6bff66",
-                    },
-                  }}
-                  //                     ready: boolean;
-                  //   isUploading: boolean;
-                  //   uploadProgress: number;
-                  //   fileTypes: string[];
-                  //   isDragActive: boolean;
-                  //   files: File[];
-                  content={{
-                    label: "Pasirink nuotrauką/as, arba mestelk jas čia",
-                    allowedContent: "Leidžiamos tik nuotraukos",
-                    button({ ready, isUploading, uploadProgress, files }) {
-                      if (ready) return "Įkelk";
-                      if (uploadProgress) return `Kraunama: ${uploadProgress}%`;
-                      if (files.length > 0)
-                        return `Įkelsi ${files.length} nuostabias suoliuko nuotrauks`;
-                    },
-                  }}
+          <FormProvider {...methods}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div>
+                <label className="mb-4 block text-sm font-medium">
+                  Pavadinimas*
+                </label>
+                <input
+                  type="text"
+                  {...register("title")}
+                  className={`mt-1 block w-full rounded-md border bg-white/10 px-3 py-2 text-white placeholder-white/50 focus:ring-1 focus:outline-none ${
+                    errors.title
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      : "border-white/20 focus:border-[hsl(118,100%,70%)] focus:ring-[hsl(118,100%,70%)]"
+                  }`}
+                  placeholder="Įveskite pavadinimą..."
                 />
+                {errors.title && (
+                  <p className="mt-1 text-sm text-red-400">
+                    {errors.title.message}
+                  </p>
+                )}
               </div>
-              {errors.photoUrl && (
-                <p className="mt-1 text-sm text-red-400">
-                  {errors.photoUrl.message}
-                </p>
-              )}
-            </div>
-            <button
-              type="submit"
-              disabled={isSubmitting || createPost.isPending}
-              className="mt-4 w-full rounded-md bg-[hsl(118,100%,70%)] py-4 font-semibold text-black transition hover:bg-[hsl(118,80%,60%)] disabled:opacity-50"
-            >
-              {isSubmitting || createPost.isPending
-                ? "Kuriama..."
-                : "Sukurti įrašą"}
-            </button>
-          </form>
+              <div>
+                <label className="mb-4 block text-sm font-medium">
+                  Aprašymas*
+                </label>
+                <textarea
+                  {...register("description")}
+                  className={`mt-1 block w-full rounded-md border bg-white/10 px-3 py-2 text-white placeholder-white/50 focus:ring-1 focus:outline-none ${
+                    errors.description
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      : "border-white/20 focus:border-[hsl(118,100%,70%)] focus:ring-[hsl(118,100%,70%)]"
+                  }`}
+                  placeholder="Aprašykite savo įrašą..."
+                  rows={3}
+                />
+                {errors.description && (
+                  <p className="mt-1 text-sm text-red-400">
+                    {errors.description.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="mb-4 block text-sm font-medium">
+                  Nuotrauka/os*
+                </label>
+                <div
+                  className={`mt-1 block w-full rounded-md border bg-white/10 px-3 py-2 text-white placeholder-white/50 focus:ring-1 focus:outline-none ${
+                    errors.photoUrl
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      : "border-white/20 focus:border-[hsl(118,100%,70%)] focus:ring-[hsl(118,100%,70%)]"
+                  }`}
+                >
+                  <UploadThingDrop />
+                  {/* {photoUrl && ( */}
+                  {/* shitty image displaying. Need to fix. */}
+                  <div className="mt-2">
+                    <Image
+                      src={
+                        "https://utfs.io/f/Lad37l7OmRSbO0gzGiYr6aILHGYd84v0njgNWZuiF7wRBCcq"
+                      }
+                      alt="Preview"
+                      className="max-h-48 w-full rounded object-cover"
+                      width={500}
+                      height={300}
+                    />
+                  </div>
+                  {/* )} */}
+                </div>
+
+                {errors.photoUrl && (
+                  <p className="mt-1 text-sm text-red-400">
+                    {errors.photoUrl.message}
+                  </p>
+                )}
+              </div>
+              <Button
+                type="submit"
+                variant="outline"
+                size="lg"
+                fullWidth
+                isLoading={isSubmitting || createPost.isPending}
+                loadingText="Kuriama..."
+                disabled={isSubmitting || createPost.isPending}
+              >
+                Sukurti įrašą
+              </Button>
+            </form>
+          </FormProvider>
         </div>
 
         <div>
@@ -274,8 +226,9 @@ export const ZemelapisScreen = (props: Props) => {
               ))}
             </div>
           ) : (
-            <div className="rounded-lg bg-white/10 p-8 text-center text-white/70">
-              Dar neturite įrašų. Sukurkite savo pirmą įrašą aukščiau!
+            <div className="rounded-lg bg-white/10 p-8 text-center text-white">
+              Kol kas nieko neįkėlei. Nei vieno suoliuko. Lygiai 0. Gal tu sėdėt
+              nemėgsti? Keistuolis...
             </div>
           )}
         </div>
