@@ -9,5 +9,5 @@ export default async function Zemelapis() {
     redirect("/");
   }
 
-  return <ZemelapisScreen session={session} />;
+  return <ZemelapisScreen />;
 }

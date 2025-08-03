@@ -23,7 +23,7 @@ const buttonVariants = {
     disabled: "disabled:bg-white/5 disabled:text-white/30",
   },
   outline: {
-    base: "border-2 border-[hsl(118,100%,70%)] text-[hsl(118,100%,70%)] hover:bg-[hsl(118,100%,70%)] hover:text-black focus:ring-[hsl(118,100%,70%)]",
+    base: "border-2 border-[hsl(118,100%,70%)] text-[hsl(118,100%,70%)] hover:bg-[hsl(118,100%,70%)] hover:text-black focus:ring-[hsl(118,100%,70%)] disabled:hover:bg-transparent disabled:hover:text-[hsl(118,100%,70%)]/30",
     disabled:
       "disabled:border-[hsl(118,100%,70%)]/30 disabled:text-[hsl(118,100%,70%)]/30",
   },
