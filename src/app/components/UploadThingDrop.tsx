@@ -217,15 +217,13 @@ export const UploadThingDrop = forwardRef<UploadThingDropRef>(
     }, [files.length]);
 
     const uploadFiles = useCallback(async (): Promise<string[]> => {
-      if (!isUploading) {
-        console.log("Starting upload of files:", files);
-
+      if (files.length > 0 && !isUploading) {
         return new Promise<string[]>((resolve, reject) => {
           uploadPromiseRef.current = { resolve, reject };
           void startUpload(files);
         });
       }
-      return []; // Return empty array if no files to upload
+      return [];
     }, [files, isUploading, startUpload]);
 
     const hasFiles = useCallback(() => {
@@ -238,7 +236,6 @@ export const UploadThingDrop = forwardRef<UploadThingDropRef>(
       hasFiles,
     }));
 
-    // Clean up preview URLs when component unmounts
     useEffect(() => {
       return () => {
         files.forEach((file) => URL.revokeObjectURL(file.preview));

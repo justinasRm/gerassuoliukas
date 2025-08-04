@@ -3,8 +3,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { api } from "~/trpc/react";
-import type { Session } from "next-auth";
-import { LeafletMap } from "../LeafletMap";
+import LocationPicker from "../LeafletMapWithLocation";
 import { Button } from "../ui/Button";
 import { UploadThingDrop, type UploadThingDropRef } from "../UploadThingDrop";
 import { useRef } from "react";
@@ -96,7 +95,11 @@ export const ZemelapisScreen = () => {
             Mano <span className="text-[hsl(118,100%,70%)]">įrašai</span>
           </h1>
         </div>
-        <LeafletMap />
+        <LocationPicker
+          onLocationSelect={(lat, lng, locationName) => {
+            console.log(lat, lng, locationName);
+          }}
+        />
         <div className="mb-8 rounded-lg bg-white/10 p-6">
           <h2 className="mb-8 text-xl font-semibold text-[hsl(118,100%,70%)]">
             Sukurti naują įrašą
