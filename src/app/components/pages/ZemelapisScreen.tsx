@@ -38,6 +38,10 @@ const createPostSchema = z.object({
       1,
       "Gal tindery be nuotraukų ir praslysi, bet čia ne.\nĮkelk nuotrauką.",
     ),
+  location: z.object({
+    lat: z.number(),
+    lng: z.number(),
+  }),
 });
 
 export type CreatePostFormData = z.infer<typeof createPostSchema>;
@@ -95,11 +99,7 @@ export const ZemelapisScreen = () => {
             Mano <span className="text-[hsl(118,100%,70%)]">įrašai</span>
           </h1>
         </div>
-        <LocationPicker
-          onLocationSelect={(lat, lng, locationName) => {
-            console.log(lat, lng, locationName);
-          }}
-        />
+
         <div className="mb-8 rounded-lg bg-white/10 p-6">
           <h2 className="mb-8 text-xl font-semibold text-[hsl(118,100%,70%)]">
             Sukurti naują įrašą
@@ -166,6 +166,11 @@ export const ZemelapisScreen = () => {
                   </p>
                 )}
               </div>
+              <LocationPicker
+                onLocationSelect={(lat, lng, locationName) => {
+                  console.log(lat, lng);
+                }}
+              />
               <Button
                 type="submit"
                 variant="outline"

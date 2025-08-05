@@ -4,17 +4,28 @@ import { LatLng } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Button } from "./ui/Button";
+import { renderToStaticMarkup } from "react-dom/server";
 
-// Fix for default markers in React Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
+const CustomMarkerComponent = () => (
+  <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-green-500 bg-white text-xl shadow-lg">
+    <img
+      src="/images/bench2.svg"
+      color="white"
+      alt="bench"
+      className="h-6 w-6"
+    />
+  </div>
+);
+
+const createReactIcon = (component: React.ReactElement) => {
+  const html = renderToStaticMarkup(component);
+  return L.divIcon({
+    html,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    className: "custom-react-icon",
+  });
+};
 
 interface LocationPickerProps {
   onLocationSelect: (lat: number, lng: number, locationName?: string) => void;
@@ -40,14 +51,12 @@ export function LocationMarker({
     map.locate({ setView: true, maxZoom: 16 });
   });
 
-  const mapEvents = useMapEvents({
-    locationfound(e) {
-      setPosition(e.latlng);
-      map.flyTo(e.latlng, map.getZoom());
-    },
-  });
-
-  return position === null ? null : <Marker position={position} />;
+  return position === null ? null : (
+    <Marker
+      position={position}
+      icon={createReactIcon(<CustomMarkerComponent />)}
+    />
+  );
 }
 
 export default function LocationPicker({
@@ -64,7 +73,6 @@ export default function LocationPicker({
     async (lat: number, lng: number) => {
       setSelectedLocation({ lat, lng });
 
-      // Optional: Get human-readable location name using reverse geocoding
       try {
         const response = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
@@ -118,11 +126,11 @@ export default function LocationPicker({
   return (
     <div className="space-y-4">
       <div className="text-sm text-white">
-        Spustelėk žemėlapyje, kad pasirinktum vietą:
+        Mygtelk žemėlapyje, kad pasirinktum vietą:
       </div>
 
       <div className="text-xs text-white/70">
-        Imk laisvę matyti kokį norį žemėlapį (nes aš galiu taip padaryt):
+        Turėk laisvę matyti kokį norį žemėlapį (nes aš galiu taip padaryt):
       </div>
       <div className="flex flex-wrap items-center justify-center gap-3">
         {mapUrls.map((mapStyle, index) => (
@@ -157,9 +165,6 @@ export default function LocationPicker({
             url={mapUrls[currentMapStyle]!.url}
           />
           <LocationMarker onLocationSelect={handleLocationSelect} />
-          {selectedLocation && (
-            <Marker position={[selectedLocation.lat, selectedLocation.lng]} />
-          )}
         </MapContainer>
       </div>
       {selectedLocation && (
