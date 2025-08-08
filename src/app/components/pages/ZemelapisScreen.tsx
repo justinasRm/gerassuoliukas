@@ -38,10 +38,15 @@ const createPostSchema = z.object({
       1,
       "Gal tindery be nuotraukų ir praslysi, bet čia ne.\nĮkelk nuotrauką.",
     ),
-  location: z.object({
-    lat: z.number(),
-    lng: z.number(),
-  }),
+  location: z
+    .object({
+      lat: z.number(),
+      lng: z.number(),
+      name: z.string().optional(),
+    })
+    .refine((data) => data.lat !== 0 || data.lng !== 0, {
+      message: "Kas tau negerai? Pasirink vietą. Kaip kitiem ją rast?",
+    }),
 });
 
 export type CreatePostFormData = z.infer<typeof createPostSchema>;
@@ -54,6 +59,11 @@ export const ZemelapisScreen = () => {
       title: "",
       description: "",
       photoUrls: [],
+      location: {
+        lat: 0,
+        lng: 0,
+        name: "",
+      },
     },
   });
 
@@ -61,6 +71,7 @@ export const ZemelapisScreen = () => {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = methods;
 
@@ -70,7 +81,15 @@ export const ZemelapisScreen = () => {
 
   const createPost = api.post.createPost.useMutation({
     onSuccess: () => {
-      reset();
+      reset({
+        title: "",
+        description: "",
+        photoUrls: [],
+        location: {
+          lat: 0,
+          lng: 0,
+        },
+      });
       void utils.post.getMyPosts.invalidate();
     },
   });
@@ -84,7 +103,11 @@ export const ZemelapisScreen = () => {
       createPost.mutate({
         title: data.title.trim(),
         description: data.description.trim(),
-        photoUrl: uploadedUrls[0] ?? "", // For now, use the first URL until backend supports multiple
+        photoUrls: uploadedUrls,
+        location: {
+          lat: data.location.lat,
+          lng: data.location.lng,
+        },
       });
     } catch (error) {
       console.error("Upload failed:", error);
@@ -166,11 +189,33 @@ export const ZemelapisScreen = () => {
                   </p>
                 )}
               </div>
-              <LocationPicker
-                onLocationSelect={(lat, lng, locationName) => {
-                  console.log(lat, lng);
-                }}
-              />
+              <div>
+                <label className="mb-4 block text-sm font-medium">Vieta*</label>
+                <div
+                  className={`mt-1 block w-full rounded-md border bg-white/10 px-3 py-2 focus:ring-1 focus:outline-none ${
+                    errors.location
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      : "border-white/20 focus:border-[hsl(118,100%,70%)] focus:ring-[hsl(118,100%,70%)]"
+                  }`}
+                >
+                  <LocationPicker
+                    onLocationSelect={(lat, lng, locationName) => {
+                      setValue("location", {
+                        lat,
+                        lng,
+                        name:
+                          locationName ||
+                          `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+                      });
+                    }}
+                  />
+                </div>
+                {errors.location && (
+                  <p className="mt-1 text-sm text-red-400">
+                    {errors.location.message}
+                  </p>
+                )}
+              </div>
               <Button
                 type="submit"
                 variant="outline"
@@ -205,12 +250,17 @@ export const ZemelapisScreen = () => {
                   {post.description && (
                     <p className="mt-2 text-white/80">{post.description}</p>
                   )}
-                  {post.photoUrl && (
-                    <img
-                      src={post.photoUrl}
-                      alt={post.title}
-                      className="mt-2 h-48 w-full rounded object-cover"
-                    />
+                  {post.photoUrls && post.photoUrls.length > 0 && (
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {post.photoUrls.map((url) => (
+                        <img
+                          key={url}
+                          src={url}
+                          alt={post.title}
+                          className="h-48 w-full rounded object-cover"
+                        />
+                      ))}
+                    </div>
                   )}
                   <p className="mt-2 text-sm text-white/60">
                     Sukurta:

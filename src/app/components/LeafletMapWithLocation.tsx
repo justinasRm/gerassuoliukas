@@ -29,6 +29,7 @@ const createReactIcon = (component: React.ReactElement) => {
 
 interface LocationPickerProps {
   onLocationSelect: (lat: number, lng: number, locationName?: string) => void;
+  onMapSkinChange?: () => void;
   initialLocation?: { lat: number; lng: number };
 }
 
@@ -61,18 +62,18 @@ export function LocationMarker({
 
 export default function LocationPicker({
   onLocationSelect,
+  onMapSkinChange,
   initialLocation = { lat: 54.6872, lng: 25.2797 }, // Vilnius
 }: LocationPickerProps) {
-  const [selectedLocation, setSelectedLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
   const [currentMapStyle, setCurrentMapStyle] = useState(0);
+
+  const handleMapStyleChange = (newStyleIndex: number) => {
+    setCurrentMapStyle(newStyleIndex);
+    onMapSkinChange?.();
+  };
 
   const handleLocationSelect = useCallback(
     async (lat: number, lng: number) => {
-      setSelectedLocation({ lat, lng });
-
       try {
         const response = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
@@ -125,10 +126,6 @@ export default function LocationPicker({
 
   return (
     <div className="space-y-4">
-      <div className="text-sm text-white">
-        Mygtelk žemėlapyje, kad pasirinktum vietą:
-      </div>
-
       <div className="text-xs text-white/70">
         Turėk laisvę matyti kokį norį žemėlapį (nes aš galiu taip padaryt):
       </div>
@@ -136,8 +133,9 @@ export default function LocationPicker({
         {mapUrls.map((mapStyle, index) => (
           <Button
             key={index}
+            type="button"
             variant="ghost"
-            onClick={() => setCurrentMapStyle(index)}
+            onClick={() => handleMapStyleChange(index)}
             className={`group relative transform overflow-hidden p-4 font-medium text-white transition-all duration-300 ${currentMapStyle === index ? "scale-105 shadow-2xl" : "hover:shadow-xl"}`}
           >
             <div className="relative z-10 flex flex-col items-center space-y-2">
@@ -158,7 +156,6 @@ export default function LocationPicker({
           center={[initialLocation.lat, initialLocation.lng]}
           zoom={13}
           style={{ height: "100%", width: "100%" }}
-          key={currentMapStyle}
         >
           <TileLayer
             attribution={mapUrls[currentMapStyle]!.attribution}
@@ -167,12 +164,6 @@ export default function LocationPicker({
           <LocationMarker onLocationSelect={handleLocationSelect} />
         </MapContainer>
       </div>
-      {selectedLocation && (
-        <div className="text-sm text-green-400">
-          Pasirinkta vieta: {selectedLocation.lat.toFixed(4)},{" "}
-          {selectedLocation.lng.toFixed(4)}
-        </div>
-      )}
     </div>
   );
 }

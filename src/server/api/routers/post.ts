@@ -5,7 +5,11 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 const createPostSchema = z.object({
   title: z.string(),
   description: z.string(),
-  photoUrl: z.string(),
+  photoUrls: z.array(z.string()),
+  location: z.object({
+    lat: z.number(),
+    lng: z.number(),
+  }),
 });
 
 // Export the inferred type for frontend use
@@ -19,7 +23,9 @@ export const postRouter = createTRPCRouter({
         data: {
           title: input.title,
           description: input.description,
-          photoUrl: input.photoUrl || "",
+          photoUrls: input.photoUrls,
+          locationLat: input.location.lat,
+          locationLng: input.location.lng,
           createdBy: { connect: { id: ctx.session.user.id } },
         },
       });
