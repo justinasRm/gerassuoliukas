@@ -58,3 +58,7 @@
   width: 110px;
   pointer-events: none;
 }
+
+.leaflet-popup.airbnb-popup .leaflet-popup-content {
+  margin: 0;
+}

@@ -58,7 +58,7 @@ export const IeskotiScreen = () => {
           <InteractiveMap
             mode="post-display"
             posts={posts || []}
-            height="h-96 md:h-[600px]"
+            height="h-130 md:h-[600px]"
             zoom={11}
           />
         </div>

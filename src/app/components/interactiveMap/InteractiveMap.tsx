@@ -142,7 +142,11 @@ export const InteractiveMap = ({
                 position={[post.locationLat, post.locationLng]}
                 icon={createReactIcon()}
               >
-                <Popup closeButton={undefined} ref={popupRef}>
+                <Popup
+                  className="airbnb-popup"
+                  closeButton={false}
+                  ref={popupRef}
+                >
                   <PostPopup post={post} onClose={handlePopupClose} />
                 </Popup>
               </Marker>
