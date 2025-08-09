@@ -43,7 +43,6 @@ const createPostSchema = z.object({
     .object({
       lat: z.number(),
       lng: z.number(),
-      name: z.string().optional(),
     })
     .refine((data) => data.lat !== 0 || data.lng !== 0, {
       message: "Kas tau negerai? Pasirink vietą. Kaip kitiem ją rast?",
@@ -63,7 +62,6 @@ export const ZemelapisScreen = () => {
       location: {
         lat: 0,
         lng: 0,
-        name: "",
       },
     },
   });
@@ -203,17 +201,10 @@ export const ZemelapisScreen = () => {
                 >
                   <InteractiveMap
                     mode="location-picker"
-                    onLocationSelect={(
-                      lat: number,
-                      lng: number,
-                      locationName?: string,
-                    ) => {
+                    onLocationSelect={(lat: number, lng: number) => {
                       setValue("location", {
                         lat,
                         lng,
-                        name:
-                          locationName ||
-                          `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
                       });
                     }}
                   />

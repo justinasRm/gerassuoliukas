@@ -22,7 +22,7 @@ type GetAllPostsType = inferRouterOutputs<AppRouter>["post"]["getAllPosts"];
 interface InteractiveMapProps {
   mode: "location-picker" | "post-display";
   posts?: GetAllPostsType;
-  onLocationSelect?: (lat: number, lng: number, locationName?: string) => void;
+  onLocationSelect?: (lat: number, lng: number) => void;
   onMapSkinChange?: () => void;
   initialLocation?: { lat: number; lng: number };
   height?: string;
@@ -72,21 +72,9 @@ export const InteractiveMap = ({
     onMapSkinChange?.();
   };
 
-  const handleLocationSelect = async (lat: number, lng: number) => {
-    if (mode === "location-picker" && onLocationSelect) {
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
-        );
-        const data = await response.json();
-        const locationName =
-          data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-        onLocationSelect(lat, lng, locationName);
-      } catch (error) {
-        console.error("Failed to get location name:", error);
-        onLocationSelect(lat, lng);
-      }
-    }
+  const handleLocationSelect = (lat: number, lng: number) => {
+    if (mode !== "location-picker") return;
+    onLocationSelect?.(lat, lng);
   };
 
   return (
