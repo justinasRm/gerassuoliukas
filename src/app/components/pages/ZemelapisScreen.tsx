@@ -3,10 +3,11 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { api } from "~/trpc/react";
-import LocationPicker from "../LeafletMapWithLocation";
-import { Button } from "../ui/Button";
+import { InteractiveMap } from "../interactiveMap/InteractiveMap";
+import { Button } from "../commonUi/Button";
 import { UploadThingDrop, type UploadThingDropRef } from "../UploadThingDrop";
 import { useRef } from "react";
+import { Navigation } from "../Navigation";
 
 // const LeafletMap = dynamic(
 //   () => import("../LeafletMap").then((mod) => ({ default: mod.LeafletMap })),
@@ -119,9 +120,11 @@ export const ZemelapisScreen = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 text-center">
           <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Mano <span className="text-[hsl(118,100%,70%)]">įrašai</span>
+            Mano <span className="text-[hsl(118,100%,70%)]">suoliukas</span>
           </h1>
         </div>
+
+        <Navigation />
 
         <div className="mb-8 rounded-lg bg-white/10 p-6">
           <h2 className="mb-8 text-xl font-semibold text-[hsl(118,100%,70%)]">
@@ -198,8 +201,13 @@ export const ZemelapisScreen = () => {
                       : "border-white/20 focus:border-[hsl(118,100%,70%)] focus:ring-[hsl(118,100%,70%)]"
                   }`}
                 >
-                  <LocationPicker
-                    onLocationSelect={(lat, lng, locationName) => {
+                  <InteractiveMap
+                    mode="location-picker"
+                    onLocationSelect={(
+                      lat: number,
+                      lng: number,
+                      locationName?: string,
+                    ) => {
                       setValue("location", {
                         lat,
                         lng,
@@ -233,7 +241,7 @@ export const ZemelapisScreen = () => {
 
         <div>
           <h2 className="mb-4 text-xl font-semibold text-[hsl(118,100%,70%)]">
-            Jūsų įrašai
+            Tavo suoliukai
           </h2>
           {isLoading ? (
             <div className="text-center text-white/70">Kraunama...</div>

@@ -12,7 +12,7 @@ import {
   useRef,
 } from "react";
 import { generateClientDropzoneAccept } from "uploadthing/client";
-import { Button } from "./ui/Button";
+import { Button } from "./commonUi/Button";
 import heic2any from "heic2any";
 import imageCompression from "browser-image-compression";
 
