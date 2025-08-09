@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 
 const createPostSchema = z.object({
   title: z.string(),
@@ -16,18 +20,20 @@ const createPostSchema = z.object({
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 
 export const postRouter = createTRPCRouter({
-  createPost: protectedProcedure
+  createPost: publicProcedure
     .input(createPostSchema)
     .mutation(async ({ ctx, input }) => {
+      const postData = {
+        title: input.title,
+        description: input.description,
+        photoUrls: input.photoUrls,
+        locationLat: input.location.lat,
+        locationLng: input.location.lng,
+        ...(ctx.session?.user?.id && { createdById: ctx.session.user.id }),
+      };
+
       return ctx.db.post.create({
-        data: {
-          title: input.title,
-          description: input.description,
-          photoUrls: input.photoUrls,
-          locationLat: input.location.lat,
-          locationLng: input.location.lng,
-          createdBy: { connect: { id: ctx.session.user.id } },
-        },
+        data: postData,
       });
     }),
 
@@ -38,7 +44,7 @@ export const postRouter = createTRPCRouter({
     });
   }),
 
-  getAllPosts: protectedProcedure.query(({ ctx }) => {
+  getAllPosts: publicProcedure.query(({ ctx }) => {
     return ctx.db.post.findMany({
       orderBy: { createdAt: "desc" },
       include: {

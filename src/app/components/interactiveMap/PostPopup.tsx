@@ -1,3 +1,5 @@
+import { FaChevronLeft } from "react-icons/fa";
+import { IoIosClose } from "react-icons/io";
 import React from "react";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "~/server/api/root";
@@ -72,18 +74,21 @@ export const PostPopup = (props: PostPopupProps) => {
                 <button
                   type="button"
                   onClick={goPrev}
-                  className="absolute top-1/2 left-2 h-10 w-5 -translate-y-1/2 rounded-full bg-white/90 p-1 font-black text-black shadow hover:bg-white"
+                  className="absolute top-1/2 left-2 flex h-10 w-5 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 p-1 font-black text-black shadow hover:bg-white"
                   aria-label="Previous image"
                 >
-                  ‹
+                  <FaChevronLeft size={10} />
                 </button>
                 <button
                   type="button"
                   onClick={goNext}
-                  className="absolute top-1/2 right-2 h-10 w-5 -translate-y-1/2 rounded-full bg-white/90 p-1 font-black text-black shadow hover:bg-white"
+                  className="absolute top-1/2 right-2 flex h-10 w-5 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 p-1 font-black text-black shadow hover:bg-white"
                   aria-label="Next image"
                 >
-                  ›
+                  <FaChevronLeft
+                    size={10}
+                    style={{ transform: "rotate(180deg)" }}
+                  />
                 </button>
                 <div className="pointer-events-none absolute right-0 bottom-2 left-0 flex justify-center gap-1">
                   {images.map((_, i) => (
@@ -99,10 +104,10 @@ export const PostPopup = (props: PostPopupProps) => {
         )}
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 font-black text-black shadow hover:bg-white"
+          className="absolute top-2 right-2 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-white/90 font-black text-black shadow hover:bg-white"
           aria-label="Close popup"
         >
-          ×
+          <IoIosClose size={20} onClick={onClose} className="" />
         </button>
       </div>
 
@@ -121,7 +126,7 @@ export const PostPopup = (props: PostPopupProps) => {
 
         <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center gap-2">
-            {post.createdBy.image && (
+            {post.createdBy?.image && (
               <img
                 src={post.createdBy.image}
                 alt={post.createdBy.name || "User"}
@@ -129,7 +134,7 @@ export const PostPopup = (props: PostPopupProps) => {
               />
             )}
             <span className="max-w-[140px] truncate">
-              {post.createdBy.name || "Anonimas"}
+              {post.createdBy?.name || "Chromosoma X (arba Y)"}
             </span>
           </div>
           <span>{new Date(post.createdAt).toLocaleDateString("lt-LT")}</span>

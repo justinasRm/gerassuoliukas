@@ -25,21 +25,19 @@ export default async function Home() {
             </p>
 
             <div className="flex flex-col items-center justify-center gap-4">
-              {session ? (
-                <Link
-                  href="/posts"
-                  className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-                >
-                  Peržiūrėti suoliukus
-                </Link>
-              ) : (
-                <Link
-                  href="/auth"
-                  className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-                >
-                  Prisijungti
-                </Link>
-              )}
+              <Link
+                href="/zemelapis"
+                className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
+              >
+                Žiūrėti suoliukus
+              </Link>
+
+              <Link
+                href="/auth"
+                className="rounded-full bg-green-600/20 px-10 py-3 font-semibold no-underline transition hover:bg-green-600/30"
+              >
+                Prisijungti
+              </Link>
             </div>
           </div>
         </div>

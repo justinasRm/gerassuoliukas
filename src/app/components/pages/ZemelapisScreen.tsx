@@ -76,8 +76,6 @@ export const ZemelapisScreen = () => {
 
   const utils = api.useUtils();
 
-  const { data: posts, isLoading } = api.post.getMyPosts.useQuery();
-
   const createPost = api.post.createPost.useMutation({
     onSuccess: () => {
       reset({
@@ -89,7 +87,7 @@ export const ZemelapisScreen = () => {
           lng: 0,
         },
       });
-      void utils.post.getMyPosts.invalidate();
+      void utils.post.invalidate();
     },
   });
 
@@ -228,52 +226,6 @@ export const ZemelapisScreen = () => {
               </Button>
             </form>
           </FormProvider>
-        </div>
-
-        <div>
-          <h2 className="mb-4 text-xl font-semibold text-[hsl(118,100%,70%)]">
-            Tavo suoliukai
-          </h2>
-          {isLoading ? (
-            <div className="text-center text-white/70">Kraunama...</div>
-          ) : posts && posts.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {posts.map((post) => (
-                <div
-                  key={post.id}
-                  className="rounded-lg bg-white/10 p-4 transition hover:bg-white/20"
-                >
-                  <h3 className="font-semibold text-[hsl(118,100%,70%)]">
-                    {post.title}
-                  </h3>
-                  {post.description && (
-                    <p className="mt-2 text-white/80">{post.description}</p>
-                  )}
-                  {post.photoUrls && post.photoUrls.length > 0 && (
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      {post.photoUrls.map((url) => (
-                        <img
-                          key={url}
-                          src={url}
-                          alt={post.title}
-                          className="h-48 w-full rounded object-cover"
-                        />
-                      ))}
-                    </div>
-                  )}
-                  <p className="mt-2 text-sm text-white/60">
-                    Sukurta:
-                    {new Date(post.createdAt).toLocaleDateString("lt-LT")}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-lg bg-white/10 p-8 text-center text-white">
-              Kol kas nieko neįkėlei. Nei vieno suoliuko. Lygiai nulis. Gal tu
-              sėdėt nemėgsti? Eik paieškok suoliuko..
-            </div>
-          )}
         </div>
       </div>
     </main>

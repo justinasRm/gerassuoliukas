@@ -84,9 +84,22 @@ export const IeskotiScreen = () => {
             <div className="rounded-lg bg-white/5 p-4 text-center">
               <div className="text-2xl font-bold text-[hsl(118,100%,70%)]">
                 {posts && posts.length > 0
-                  ? new Set(posts.map((post) => post.createdBy.name)).size
+                  ? (() => {
+                      const authenticatedUsers = new Set(
+                        posts
+                          .filter((post) => post.createdBy?.name)
+                          .map((post) => post.createdBy!.name),
+                      ).size;
+
+                      return authenticatedUsers;
+                    })()
                   : 0}
               </div>
+              {posts && posts.some((post) => !post.createdBy) && (
+                <div className="mb-1 text-xs text-[hsl(118,100%,70%)]">
+                  + anonimai (cmon, prisijunkit...)
+                </div>
+              )}
               <div className="text-sm text-white/70">Aktyvių ieškotojų</div>
             </div>
           </div>

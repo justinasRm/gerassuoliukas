@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 export const Navigation = () => {
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   return (
     <nav className="mb-8 rounded-lg bg-white/10 p-4">
@@ -18,7 +19,7 @@ export const Navigation = () => {
                 : "bg-white/10"
             }`}
           >
-            Mano įrašai
+            {session ? "Mano įrašai" : "Pridėti įrašą"}
           </Link>
           <Link
             href="/ieskoti"
@@ -31,12 +32,23 @@ export const Navigation = () => {
             Ieškoti suoliukų
           </Link>
         </div>
-        <button
-          onClick={() => signOut()}
-          className="rounded-full px-6 py-2 font-semibold text-white transition hover:bg-white/20"
-        >
-          Atsijungti
-        </button>
+        <div className="flex items-center gap-4">
+          {session ? (
+            <button
+              onClick={() => signOut()}
+              className="rounded-full px-6 py-2 font-semibold text-white transition hover:bg-white/20"
+            >
+              Atsijungti
+            </button>
+          ) : (
+            <Link
+              href="/auth"
+              className="rounded-full px-6 py-2 font-semibold text-white transition hover:bg-white/20"
+            >
+              Prisijungti
+            </Link>
+          )}
+        </div>
       </div>
     </nav>
   );

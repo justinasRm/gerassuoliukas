@@ -1,9 +1,11 @@
 "use client";
 import { getProviders, signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export const SignInScreen = () => {
   const [providers, setProviders] = useState<any>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const loadProviders = async () => {
@@ -12,6 +14,10 @@ export const SignInScreen = () => {
     };
     loadProviders();
   }, []);
+
+  const handleContinueAsGuest = () => {
+    router.push("/zemelapis");
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[hsl(125,100%,5%)] text-white">
@@ -33,6 +39,15 @@ export const SignInScreen = () => {
               className="h-5 w-5"
             />
             Prisijungti su Google
+          </button>
+
+          <div className="text-center text-sm text-gray-400">arba</div>
+
+          <button
+            onClick={handleContinueAsGuest}
+            className="rounded-full bg-gray-600/20 px-10 py-3 font-semibold no-underline transition hover:bg-gray-600/30"
+          >
+            Tęsti kaip svečias
           </button>
         </div>
       </div>
