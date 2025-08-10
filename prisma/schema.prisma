@@ -27,7 +27,24 @@ model Post {
     createdBy   User?   @relation(fields: [createdById], references: [id])
     createdById String?
 
+    votes Vote[]
+
     @@index([title])
+}
+
+model Vote {
+    id       Int     @id @default(autoincrement())
+    isUpvote Boolean // true for upvote, false for downvote
+
+    createdAt DateTime @default(now())
+
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String
+
+    post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+    postId Int
+
+    @@unique([userId, postId]) // One vote per user per post
 }
 
 // Necessary for Next auth
@@ -67,6 +84,7 @@ model User {
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
+    votes         Vote[]
 }
 
 model VerificationToken {

@@ -1,8 +1,16 @@
 import { FaChevronLeft } from "react-icons/fa";
 import { IoIosClose } from "react-icons/io";
+import {
+  BiUpvote,
+  BiDownvote,
+  BiSolidUpvote,
+  BiSolidDownvote,
+} from "react-icons/bi";
 import React from "react";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "~/server/api/root";
+import { api } from "~/trpc/react";
+import { useSession } from "next-auth/react";
 
 type GetAllPostsType = inferRouterOutputs<AppRouter>["post"]["getAllPosts"];
 
@@ -13,11 +21,32 @@ interface PostPopupProps {
 
 export const PostPopup = (props: PostPopupProps) => {
   const { post, onClose } = props;
+  const { data: session } = useSession();
+  const utils = api.useUtils();
+
   const images =
     post.photoUrls && post.photoUrls.length > 0 ? post.photoUrls : [];
   const [index, setIndex] = React.useState(0);
   const touchStartX = React.useRef<number | null>(null);
   const touchEndX = React.useRef<number | null>(null);
+
+  const voteMutation = api.post.vote.useMutation({
+    onSuccess: () => {
+      void utils.post.getAllPosts.invalidate();
+    },
+  });
+
+  const handleVote = (isUpvote: boolean) => {
+    if (!session?.user) {
+      // Could show a login prompt here
+      return;
+    }
+
+    voteMutation.mutate({
+      postId: post.id,
+      isUpvote,
+    });
+  };
 
   const hasMultiple = images.length > 1;
   const goPrev = () => setIndex((i) => (i - 1 + images.length) % images.length);
@@ -124,15 +153,53 @@ export const PostPopup = (props: PostPopupProps) => {
           </p>
         )}
 
+        {/* Voting Section */}
+        <div className="mb-3 flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleVote(true)}
+              disabled={!session?.user || voteMutation.isPending}
+              className={`flex items-center gap-1 rounded-full px-2 py-1 text-sm transition-colors ${
+                post.userVote === "UPVOTE"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-600"
+              } ${!session?.user ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+            >
+              {post.userVote === "UPVOTE" ? (
+                <BiSolidUpvote size={16} />
+              ) : (
+                <BiUpvote size={16} />
+              )}
+              <span>{post.upvotes}</span>
+            </button>
+
+            <button
+              onClick={() => handleVote(false)}
+              disabled={!session?.user || voteMutation.isPending}
+              className={`flex items-center gap-1 rounded-full px-2 py-1 text-sm transition-colors ${
+                post.userVote === "DOWNVOTE"
+                  ? "bg-red-100 text-red-700"
+                  : "bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-600"
+              } ${!session?.user ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+            >
+              {post.userVote === "DOWNVOTE" ? (
+                <BiSolidDownvote size={16} />
+              ) : (
+                <BiDownvote size={16} />
+              )}
+              <span>{post.downvotes}</span>
+            </button>
+          </div>
+
+          {!session?.user && (
+            <span className="text-xs text-gray-400">
+              Nori vertinti? Prisijunk
+            </span>
+          )}
+        </div>
+
         <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center gap-2">
-            {post.createdBy?.image && (
-              <img
-                src={post.createdBy.image}
-                alt={post.createdBy.name || "User"}
-                className="h-6 w-6 rounded-full"
-              />
-            )}
             <span className="max-w-[140px] truncate">
               {post.createdBy?.name || "Chromosoma X (arba Y)"}
             </span>
