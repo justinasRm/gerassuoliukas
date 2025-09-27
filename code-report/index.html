@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - JavaScript Introspection</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <script>
+    var __options = {"flags":{"complexity":{"ecmaFeatures":{"arrowFunctions":true,"blockBindings":true,"destructuring":true,"regexYFlag":true,"regexUFlag":true,"templateStrings":true,"binaryLiterals":true,"octalLiterals":true,"unicodeCodePointEscapes":true,"defaultParams":true,"restParams":true,"forOf":true,"objectLiteralComputedProperties":true,"objectLiteralShorthandMethods":true,"objectLiteralShorthandProperties":true,"objectLiteralDuplicateProperties":true,"generators":true,"spread":true,"classes":true,"modules":true,"jsx":true,"globalReturn":true,"experimentalObjectRestSpread":true},"sourceType":"module","ecmaVersion":6,"loc":true,"newmi":true,"range":true},"eslint":{"rules":{"quotes":[2,"single"],"semi":[2,"always"],"curly":["error"],"no-dupe-keys":2,"func-names":[1,"always"]},"env":{"es6":true,"browser":true},"globals":["__dirname","module","exports","process","require"],"parserOptions":{"sourceType":"module","ecmaFeatures":{"jsx":true,"experimentalObjectRestSpread":true,"modules":true}}}}}
+  </script>
+
+  <link href="./assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="./assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="./assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="./assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="./assets/css/plato-overview.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li class="active">
+        <a href="index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>JavaScript Source Analysis</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <h1 class="col-md-12">Summary</h1>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Total/Average Lines <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code" data-original-title="SLOC" data-container="body"></i></h2>
+      <p class="stat">2316 / 72</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Average Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index" data-container="body"></i></a></h2>
+      <p class="stat">71.15</p>
+    </div>
+  </div>
+</div>
+<div class="container historical">
+  <div class="row">
+    <div class="col-md-6">
+      <div id="chart_historical_sloc" class="chart js-chart"></div>
+    </div>
+    <div class="col-md-6">
+      <div id="chart_historical_maint" class="chart js-chart"></div>
+    </div>
+  </div>
+</div>
+
+
+<div class="container overview">
+  <div class="row">
+    <h2 class="col-md-12">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index" data-container="body"></i></a></h2>
+    <div class="col-md-12"><div id='chart_maintainability' class='chart js-chart'></div></div>
+  </div>
+  <div class="row">
+    <h2 class="col-md-12">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code" data-original-title="SLOC" data-container="body"></i></h2>
+    <div class="col-md-12"><div id='chart_sloc' class='chart js-chart'></div></div>
+  </div>
+  <div class="row">
+    <h2 class="col-md-12">Estimated errors in implementation <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+    <div class="col-md-12"><div id='chart_bugs' class='chart js-chart'></div></div>
+  </div>
+  
+  <div class="row">
+    <h2 class="col-md-12">Lint errors</h2>
+    <div class="col-md-12"><div id='chart_lint' class='chart js-chart'></div></div>
+  </div>
+  
+</div>
+
+<div class="container">
+  <div class="row">
+    <h1 class="col-md-12">Files</h1>
+  </div>
+
+  <div class="row">
+    <div class="span12 group-header">
+      <div class="btn-group">
+        <button type="button" id="button-complexity" class="btn btn-default complexity">complexity</button>
+        <button type="button" id="button-sloc" class="btn btn-default sloc">sloc</button>
+        <button type="button" id="button-bugs" class="btn btn-default bugs">est errors</button>
+        
+        <button type="button" id="button-lint" class="btn btn-default lint">lint errors</button>
+        
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    &nbsp;
+  </div>
+
+  <div class="row">
+    <ul class="file-list list-unstyled">
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/env_js/index.html">env.js</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="57"
+              data-bugs="0.23"
+              data-complexity="2"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_layout_tsx/index.html">app/layout.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="61"
+              data-bugs="0.11"
+              data-complexity="2"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_page_tsx/index.html">app/page.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="48"
+              data-bugs="0.04"
+              data-complexity="3"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/server_db_ts/index.html">server/db.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="18"
+              data-bugs="0.08"
+              data-complexity="4"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/trpc_query_client_ts/index.html">trpc/query-client.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="26"
+              data-bugs="0.08"
+              data-complexity="4"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/trpc_react_tsx/index.html">trpc/react.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="79"
+              data-bugs="0.33"
+              data-complexity="12"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/trpc_server_ts/index.html">trpc/server.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="31"
+              data-bugs="0.08"
+              data-complexity="2"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/utils_uploadthing_ts/index.html">utils/uploadthing.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="13"
+              data-bugs="0.02"
+              data-complexity="1"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_auth_page_tsx/index.html">app/auth/page.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="14"
+              data-bugs="0.02"
+              data-complexity="3"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_components_LeafletMap_tsx/index.html">app/components/LeafletMap.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="22"
+              data-bugs="0.04"
+              data-complexity="2"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_components_LoadingSpinner_tsx/index.html">app/components/LoadingSpinner.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="18"
+              data-bugs="0.03"
+              data-complexity="3"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_components_Navigation_tsx/index.html">app/components/Navigation.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="56"
+              data-bugs="0.09"
+              data-complexity="7"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_components_UploadThingDrop_tsx/index.html">app/components/UploadThingDrop.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="411"
+              data-bugs="2.60"
+              data-complexity="70"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_ieskoti_page_tsx/index.html">app/ieskoti/page.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="6"
+              data-bugs="0.00"
+              data-complexity="2"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_zemelapis_page_tsx/index.html">app/zemelapis/page.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="6"
+              data-bugs="0.00"
+              data-complexity="2"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/server_api_root_ts/index.html">server/api/root.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="24"
+              data-bugs="0.02"
+              data-complexity="1"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/server_api_trpc_ts/index.html">server/api/trpc.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="134"
+              data-bugs="0.44"
+              data-complexity="8"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/server_auth_config_ts/index.html">server/auth/config.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="67"
+              data-bugs="0.10"
+              data-complexity="2"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/server_auth_index_ts/index.html">server/auth/index.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="11"
+              data-bugs="0.03"
+              data-complexity="1"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_api_uploadthing_core_ts/index.html">app/api/uploadthing/core.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="35"
+              data-bugs="0.06"
+              data-complexity="2"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_api_uploadthing_route_ts/index.html">app/api/uploadthing/route.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="14"
+              data-bugs="0.02"
+              data-complexity="1"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_components_commonUi_Button_tsx/index.html">app/components/commonUi/Button.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="119"
+              data-bugs="0.45"
+              data-complexity="8"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_components_interactiveMap_InteractiveMap_tsx/index.html">app/components/interactiveMap/InteractiveMap.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="147"
+              data-bugs="0.55"
+              data-complexity="16"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_components_interactiveMap_MapBenchMarker_tsx/index.html">app/components/interactiveMap/MapBenchMarker.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="24"
+              data-bugs="0.07"
+              data-complexity="4"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_components_interactiveMap_PostPopup_tsx/index.html">app/components/interactiveMap/PostPopup.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="213"
+              data-bugs="1.09"
+              data-complexity="36"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_components_interactiveMap_hooks_ts/index.html">app/components/interactiveMap/hooks.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="37"
+              data-bugs="0.10"
+              data-complexity="2"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_components_pages_IeskotiScreen_tsx/index.html">app/components/pages/IeskotiScreen.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="111"
+              data-bugs="0.28"
+              data-complexity="16"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_components_pages_SignInScreen_tsx/index.html">app/components/pages/SignInScreen.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="57"
+              data-bugs="0.11"
+              data-complexity="6"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_components_pages_ZemelapisScreen_tsx/index.html">app/components/pages/ZemelapisScreen.tsx</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="234"
+              data-bugs="0.95"
+              data-complexity="18"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/server_api_routers_post_ts/index.html">server/api/routers/post.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="184"
+              data-bugs="1.47"
+              data-complexity="22"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_api_auth_____nextauth__route_ts/index.html">app/api/auth/[...nextauth]/route.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="4"
+              data-bugs="0.01"
+              data-complexity="1"
+          ></span>
+        </div>
+      </li>
+      
+      <li class="col-md-12">
+        <div class="row">
+          <span class="fade-left fadeout visible-large"></span>
+          <span class="col-md-4 file"><a class="file-link" href="./files/app_api_trpc__trpc__route_ts/index.html">app/api/trpc/[trpc]/route.ts</a></span>
+        <span class="col-md-8 file-chart js-file-chart"
+              data-lint="1"
+              data-sloc="35"
+              data-bugs="0.11"
+              data-complexity="6"
+          ></span>
+        </div>
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/javascript" src="assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="assets/scripts/plato-overview.js"></script>
+<script type="text/javascript" src="assets/scripts/plato-sortable-file-list.js"></script>
+</body>
+</html>

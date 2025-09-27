@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - server/api/trpc.ts</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>server/api/trpc.ts</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">60.38</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">134</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">18.39</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">0.44</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">/**
+ * YOU PROBABLY DON&#039;T NEED TO EDIT THIS FILE, UNLESS:
+ * 1. You want to modify request context (see Part 1).
+ * 2. You want to create a new middleware or type of procedure (see Part 3).
+ *
+ * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
+ * need to use are documented accordingly near the end.
+ */
+
+import { initTRPC, TRPCError } from &quot;@trpc/server&quot;;
+import superjson from &quot;superjson&quot;;
+import { ZodError } from &quot;zod&quot;;
+
+import { auth } from &quot;~/server/auth&quot;;
+import { db } from &quot;~/server/db&quot;;
+
+/**
+ * 1. CONTEXT
+ *
+ * This section defines the &quot;contexts&quot; that are available in the backend API.
+ *
+ * These allow you to access things when processing a request, like the database, the session, etc.
+ *
+ * This helper generates the &quot;internals&quot; for a tRPC context. The API handler and RSC clients each
+ * wrap this and provides the required context.
+ *
+ * @see https://trpc.io/docs/server/context
+ */
+export const createTRPCContext = async (opts: { headers: Headers }) =&gt; {
+  const session = await auth();
+
+  return {
+    db,
+    session,
+    ...opts,
+  };
+};
+
+/**
+ * 2. INITIALIZATION
+ *
+ * This is where the tRPC API is initialized, connecting the context and transformer. We also parse
+ * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
+ * errors on the backend.
+ */
+const t = initTRPC.context&lt;typeof createTRPCContext&gt;().create({
+  transformer: superjson,
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        zodError:
+          error.cause instanceof ZodError ? error.cause.flatten() : null,
+      },
+    };
+  },
+});
+
+/**
+ * Create a server-side caller.
+ *
+ * @see https://trpc.io/docs/server/server-side-calls
+ */
+export const createCallerFactory = t.createCallerFactory;
+
+/**
+ * 3. ROUTER &amp; PROCEDURE (THE IMPORTANT BIT)
+ *
+ * These are the pieces you use to build your tRPC API. You should import these a lot in the
+ * &quot;/src/server/api/routers&quot; directory.
+ */
+
+/**
+ * This is how you create new routers and sub-routers in your tRPC API.
+ *
+ * @see https://trpc.io/docs/router
+ */
+export const createTRPCRouter = t.router;
+
+/**
+ * Middleware for timing procedure execution and adding an artificial delay in development.
+ *
+ * You can remove this if you don&#039;t like it, but it can help catch unwanted waterfalls by simulating
+ * network latency that would occur in production but not in local development.
+ */
+const timingMiddleware = t.middleware(async ({ next, path }) =&gt; {
+  const start = Date.now();
+
+  if (t._config.isDev) {
+    // artificial delay in dev
+    const waitMs = Math.floor(Math.random() * 400) + 100;
+    await new Promise((resolve) =&gt; setTimeout(resolve, waitMs));
+  }
+
+  const result = await next();
+
+  const end = Date.now();
+  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
+
+  return result;
+});
+
+/**
+ * Public (unauthenticated) procedure
+ *
+ * This is the base piece you use to build new queries and mutations on your tRPC API. It does not
+ * guarantee that a user querying is authorized, but you can still access user session data if they
+ * are logged in.
+ */
+export const publicProcedure = t.procedure.use(timingMiddleware);
+
+/**
+ * Protected (authenticated) procedure
+ *
+ * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
+ * the session is valid and guarantees `ctx.session.user` is not null.
+ *
+ * @see https://trpc.io/docs/procedures
+ */
+export const protectedProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(({ ctx, next }) =&gt; {
+    if (!ctx.session?.user) {
+      throw new TRPCError({ code: &quot;UNAUTHORIZED&quot; });
+    }
+    return next({
+      ctx: {
+        // infers the `session` as non-nullable
+        session: { ...ctx.session, user: ctx.session.user },
+      },
+    });
+  });
+</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>
