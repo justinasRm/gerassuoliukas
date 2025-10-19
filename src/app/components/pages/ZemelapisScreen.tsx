@@ -1,13 +1,13 @@
 "use client";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { api } from "~/trpc/react";
 import { InteractiveMap } from "../interactiveMap/InteractiveMap";
 import { Button } from "../commonUi/Button";
 import { UploadThingDrop, type UploadThingDropRef } from "../UploadThingDrop";
 import { useRef } from "react";
 import { Navigation } from "../Navigation";
+import { createPostSchema, type CreatePostFormData } from "./createPostSchema";
 
 // const LeafletMap = dynamic(
 //   () => import("../LeafletMap").then((mod) => ({ default: mod.LeafletMap })),
@@ -20,36 +20,6 @@ import { Navigation } from "../Navigation";
 //     ),
 //   },
 // );
-
-const createPostSchema = z.object({
-  title: z
-    .string()
-    .min(
-      1,
-      "Nu toks geras tas tavo fotografuotas suoliukas (turbūt). Sugalvok jam pavadinimą.",
-    )
-    .max(100, "Persistengi su tuo pavadinimu, ne? Mažink iki 100 simbolių."),
-  description: z
-    .string()
-    .min(1, "Vargai fotkindamas suoliuką, o aprašyt tingi? Įvesk aprašymą!")
-    .max(500, "Leidžiu 500 simbolių. Daugiau neįmanoma. Ir taškas, seni."),
-  photoUrls: z
-    .array(z.string().url("Kažkas negerai su url..."))
-    .min(
-      1,
-      "Gal tindery be nuotraukų ir praslysi, bet čia ne.\nĮkelk nuotrauką.",
-    ),
-  location: z
-    .object({
-      lat: z.number(),
-      lng: z.number(),
-    })
-    .refine((data) => data.lat !== 0 || data.lng !== 0, {
-      message: "Kas tau negerai? Pasirink vietą. Kaip kitiem ją rast?",
-    }),
-});
-
-export type CreatePostFormData = z.infer<typeof createPostSchema>;
 
 export const ZemelapisScreen = () => {
   const uploadRef = useRef<UploadThingDropRef>(null);
